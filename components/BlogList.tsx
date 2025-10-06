@@ -6,7 +6,7 @@ import urlFor from "../lib/urlFor";
 import ClientSideRoute from "./ClientSideRoute";
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 import { ArrowUpRightIcon } from "@heroicons/react/24/solid";
-import AdSense from "./AdSense";
+// import AdSense from "./AdSense";
 
 
 type Props = {
@@ -35,11 +35,11 @@ function BlogList({ posts }: Props) {
     <div>
 
 
-     <AdSense
+     {/* <AdSense
      adClient="ca-pub-8731247500470013"
      adSlot="pub-8731247500470013"
      
-     />
+     /> */}
      
     
       <hr className="border-[#0A7DFF]"/>

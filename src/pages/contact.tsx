@@ -21,9 +21,12 @@ type Props = {};
 const ContactMe = (props: Props) => {
   const { register, handleSubmit } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = (formdata) => {
-    window.location.href = `mailto:zohaibhyd321@gmail.com?subject={formdata.subject}&body=Hi, my name is ${formdata.message} 
-     ${formdata.name} ${formdata.email} (${formdata.subject});
-    }`;
+    const subject = encodeURIComponent(formdata.subject || "");
+    const body = encodeURIComponent(
+      `Hi, my name is ${formdata.name || ""}\n\n${formdata.message || ""}\n\n${formdata.email || ""}`
+    );
+
+    window.location.href = `mailto:zohaibhyd321@gmail.com?subject=${subject}&body=${body}`;
   };
 
   return (

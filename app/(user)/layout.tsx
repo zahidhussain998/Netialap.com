@@ -6,7 +6,6 @@ import Providers from "components/Providers";
 import Head from "next/head";
 import { Metadata } from "next";
 import { Montserrat, Roboto } from "@next/font/google";
-import AdSense from '../../components/AdSense'; // Import the AdSense component
 
 const montserrat = Roboto({
   subsets:['latin'],

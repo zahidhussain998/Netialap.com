@@ -6,6 +6,7 @@ import { PortableText } from "@portabletext/react";
 import { serializers } from "../../../../components/RichTextComponent";
 import Card from "components/Card";
 import { Metadata } from "next";
+import post from "schemas/post";
 
 
 type Props = {
@@ -29,10 +30,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   `;
   const post = await client.fetch(query, params);
 
-  return {
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+    };
+  }
+
+  const metadata: Metadata = {
     title: post.title,
     description: post.description,
-    openGraph: {
+  };
+
+  if (post.mainImage) {
+    metadata.openGraph = {
       title: post.title,
       description: post.description,
       images: [
@@ -41,13 +51,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           width: 800,
           height: 600,
           alt: post.title,
-          
         },
       ],
-      publishedTime: new Date(post._createdAt).toISOString(),
-    },
-  };
+      publishedTime: post._createdAt ? new Date(post._createdAt).toISOString() : undefined,
+    };
+  }
+
+  return metadata;
+
 }
+
 
 
 export const revalidate = 20;
@@ -67,10 +80,13 @@ export async function generateStaticParams() {
 }
 
 
-
 function PostContent({ body }: { body: any }) {
+  if (!body) {
+    return <div>No content available</div>;
+  }
+
   console.log("Body Content:", body); // Log the body content
-  
+
   return (
     <div className="flex flex-col lg:flex-row max-w-5xl space-y-10 lg:space-y-0 lg:space-x-20">
     {/* Main Content */}
@@ -94,9 +110,14 @@ async function Post({ params: { slug } }: Props) {
         author->,
        categories[]->,
     }
-  `;
-
+  `
+  ;
+  
   const post: Post = await client.fetch(query, { slug });
+
+  if (!post) {
+    return <div>Post not found</div>;
+  }
 
   return (
     <article className="tracking-normal  ">
@@ -104,13 +125,15 @@ async function Post({ params: { slug } }: Props) {
         <section className="space-y-4 md:space-y-2 ">
           <div className="relative min-h-72 md:min-h-56 flex flex-col md:flex-row justify-between">
             <div className="absolute top-0 w-full h-full opacity-10 blur-sm p-10">
-              <Image
-                className="object-cover object-center mx-auto "
-                src={urlFor(post.mainImage).url()}
-                alt={post.author.name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
+              {post.mainImage && (
+                <Image
+                  className="object-cover object-center mx-auto "
+                  src={urlFor(post.mainImage).url()}
+                  alt={post.author?.name || 'Post image'}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              )}
             </div>
             <section className="p-4 md:p-5 w-full bg-[#0A7DFF]">
               <div className="flex flex-col md:flex-row justify-between gap-y-4 md:gap-y-5">
@@ -122,25 +145,27 @@ async function Post({ params: { slug } }: Props) {
                   <hr className=" border-[#0A7DFF] mt-10" />
 
                   <div className="flex items-center space-x-2 ">
-                    <Image
-                      className="rounded-full"
-                      src={urlFor(post.author.image).url()}
-                      alt={post.author.name}
-                      width={50}
-                      height={50}
-                    />
+                    {post.author && post.author.image && (
+                      <Image
+                        className="rounded-full"
+                        src={urlFor(post.author.image).url()}
+                        alt={post.author.name}
+                        width={50}
+                        height={50}
+                      />
+                    )}
                     <div className="w-full md:w-64 mt-5">
                       <h3 className="text-lg font-bold">
-                        {post.author.name}
+                        {post.author ? post.author.name : 'Unknown Author'}
                         <p className="">
-                          {new Date(post._createdAt).toLocaleDateString(
+                          {post._createdAt ? new Date(post._createdAt).toLocaleDateString(
                             "en-US",
                             {
                               day: "numeric",
                               month: "long",
                               year: "numeric",
                             }
-                          )}
+                          ) : 'Unknown date'}
                         </p>
                       </h3>
                       <div>{/* author a10 */}</div>
@@ -155,7 +180,7 @@ async function Post({ params: { slug } }: Props) {
                     key={category._id}
                     className="text-xs bg-black text-white px-2 py-1 rounded-full"
                   >
-                    {category.title}
+                    {category.title || 'No title'}
                   </p>
                 ))}
               </div>
